@@ -36,7 +36,7 @@ run_args = ['tsm', 'maintenance', 'backup']
 run_args_test = ['tsm', 'status', '-v']
 run_args_reconnect = ['tsm', 'jobs', 'reconnect']
 config_file = 'config.json'
-backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups/'
+backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups'
 
 class ZSender(object):
     def __init__(self, config_file):
@@ -149,6 +149,7 @@ def main():
                     os.remove(file_path)
             except Exception as e:
                 l.error(f"Error while cleaning {backup_folder}: {e}")
+                z_sender.send(item=zabbix_item, value=1)
 
 
     l.debug(f"Run {run_args}")
