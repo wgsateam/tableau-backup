@@ -4,7 +4,7 @@
 tableau-backup.py -- Runs tsm maintenance backup and redirects output to file
 
 Usage:
-  tableau-backup.py [-d] [--noop]
+  tableau-backup.py [-d]
   tableau-backup.py zsend [-d]
   tableau-backup.py test [-d]
 
@@ -29,6 +29,7 @@ import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 
 test_run_args = ['tsm', 'status', '-v']
+run_args = ['tsm', 'maintenance', 'backup']
 config_file = 'config.json'
 
 
@@ -103,6 +104,12 @@ def main():
             z_sender.send(item=zabbix_item, value=1)
             sys.exit(1)
     else:
+        global run_args
+        if config['tsm'].get('tsm_backup_parms'):
+            run_args = run_args + config['tsm'].get('tsm_backup_parms').split()
+        if config['tsm'].get('backup_filename'):
+            run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
+        l.debug(f"Run {run_args}")
         try:
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
