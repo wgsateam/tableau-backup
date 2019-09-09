@@ -28,8 +28,7 @@ import re
 import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 
-run_args = 'tsm status -v'
-run_args = 'ping tut.by -c 4'
+test_run_args = 'tsm status -v'
 config_file = 'config.json'
 
 
@@ -93,13 +92,18 @@ def main():
 
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
+        sys.exit(0)
 
-
-    try:
-        proc = subprocess.Popen(run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-    except Exception as e:
-
-        sys.exit(1)
+    if argz.get('test'):
+        try:
+            proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        except Exception as e:
+            sys.exit(1)
+    else:
+        try:
+            proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        except Exception as e:
+            sys.exit(1)
 
     selector = selectors.DefaultSelector()
     key_stdout = selector.register(proc.stdout, selectors.EVENT_READ)
@@ -107,6 +111,20 @@ def main():
     setNonBlocking(proc.stdout)
     setNonBlocking(proc.stderr)
 
+    rc = None
+    while rc is None:
+        if rc is None:
+            rc = proc.poll()
+        for key, events in selector.select(timeout=1):
+            if key == key_stdout:
+                text = proc.stdout.read()
+                _ = [l.info(t) for t in list(filter(None, text.split('\n')))]
+            elif key == key_stderr:
+                text = proc.stderr.read()
+                _ = [l.error(t) for t in list(filter(None, text.split('\n')))]
+
+    exit_code = str(rc)
+    l.info(f'exit code: {exit_code}')
 
 
 if __name__ == '__main__':
