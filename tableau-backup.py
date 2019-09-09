@@ -28,7 +28,7 @@ import re
 import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 
-test_run_args = 'tsm status -v'
+test_run_args = ['tsm', 'status', '-v']
 config_file = 'config.json'
 
 
