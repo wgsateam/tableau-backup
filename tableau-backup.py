@@ -126,8 +126,6 @@ def main():
     run_args_login = ['tsm', 'login', '-u', config['tsm'].get('username'), '-p', config['tsm'].get('password')]
     exit_code = run_cmd(argz=run_args_login)
     l.debug(f"Login exit code: {exit_code}")
-    run_cmd(argz=run_args)
-
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
     elif argz.get('re'):
