@@ -33,8 +33,6 @@ test_run_args = ['tsm', 'status', '-v']
 run_args = ['tsm', 'maintenance', 'backup']
 config_file = 'config.json'
 
-
-
 class ZSender(object):
     def __init__(self, config_file):
         self.l = logging.getLogger('main.zabbix_send')
@@ -91,7 +89,6 @@ def main():
     fh = RotatingFileHandler(config['logging']['file'], maxBytes=int(config['logging']['maxBytes']), backupCount=int(config['logging']['backupCount']))
     fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     l.addHandler(fh)
-
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['item']
     l.debug(f"zabbix_item: {zabbix_item}")
@@ -116,7 +113,7 @@ def main():
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
         l.debug(f"Run {run_args}")
         try:
-            proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+            proc = subprocess.Popen(run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
             l.error(e)
             z_sender.send(item=zabbix_item, value=1)
@@ -146,7 +143,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
