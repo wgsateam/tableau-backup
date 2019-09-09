@@ -7,12 +7,14 @@ Usage:
   tableau-backup.py [-d]
   tableau-backup.py zsend [-d]
   tableau-backup.py test [-d]
+  tableau-backup.py re [-d]
 
 Options:
   -d               Debug mode
   --noop           Run in noop mode
   zsend            Send to zabbix '1'
   test             Run "tsm status -v"
+  re               Run "tsm jobs reconnect"
 
 
 """
@@ -29,8 +31,9 @@ import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 from logging.handlers import RotatingFileHandler
 
-test_run_args = ['tsm', 'status', '-v']
 run_args = ['tsm', 'maintenance', 'backup']
+run_args_test = ['tsm', 'status', '-v']
+run_args_reconnect = ['tsm', 'jobs', 'reconnect']
 config_file = 'config.json'
 
 class ZSender(object):
@@ -57,9 +60,8 @@ def setNonBlocking(fileobj):
 
 def run_cmd(argz):
     l = logging.getLogger('main.run_cmd')
-    l.debug(f"Run {argz}")
     try:
-        proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        proc = subprocess.Popen(argz, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
     except Exception as e:
         l.error(e)
         return 1
@@ -80,12 +82,10 @@ def run_cmd(argz):
             elif key == key_stderr:
                 text = proc.stderr.read()
                 _ = [l.error(t) for t in list(filter(None, text.split('\n')))]
-
-    exit_code = str(rc)
-    l.info(f'exit code: {exit_code}')
-    return exit_code
+    return str(rc)
 
 def main():
+    global run_args
     l = logging.getLogger('main')
     if '-d' in sys.argv:
         print(f"argv: {sys.argv}")
@@ -123,20 +123,26 @@ def main():
     zabbix_item = config['zabbix']['item']
     l.debug(f"zabbix_item: {zabbix_item}")
 
+    run_args_login = ['tsm', 'login', '-u', config['tsm'].get('username'), '-p', config['tsm'].get('password')]
+    exit_code = run_cmd(argz=run_args_login)
+    l.debug(f"Login exit code: {exit_code}")
+    run_cmd(argz=run_args)
+
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
-        sys.exit(0)
-    global run_args
-
-    if argz.get('test'):
-        run_args = test_run_args
+    elif argz.get('re'):
+        run_args = run_args_reconnect
+    elif argz.get('test'):
+        run_args = run_args_test
     else:
         if config['tsm'].get('tsm_backup_parms'):
             run_args = run_args + config['tsm'].get('tsm_backup_parms').split()
         if config['tsm'].get('backup_filename'):
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
 
+    l.debug(f"Run {argz}")
     exit_code = run_cmd(argz=run_args)
+    l.info(f'exit code: {exit_code}')
     z_sender.send(item=zabbix_item, value=exit_code)
 
 if __name__ == '__main__':
