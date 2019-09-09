@@ -51,9 +51,39 @@ class ZSender(object):
         self.l.debug(f"Send {packet} to {self.server}")
         return ZabbixSender(zabbix_server=self.server).send(packet)
 
-def setNonBlocking( fileobj):
+def setNonBlocking(fileobj):
     fl = fcntl.fcntl(fileobj.fileno(), fcntl.F_GETFL)
     fcntl.fcntl(fileobj.fileno(), fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+def run_cmd(argz):
+    l = logging.getLogger('main.run_cmd')
+    l.debug(f"Run {argz}")
+    try:
+        proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+    except Exception as e:
+        l.error(e)
+        return 1
+    selector = selectors.DefaultSelector()
+    key_stdout = selector.register(proc.stdout, selectors.EVENT_READ)
+    key_stderr = selector.register(proc.stderr, selectors.EVENT_READ)
+    setNonBlocking(proc.stdout)
+    setNonBlocking(proc.stderr)
+
+    rc = None
+    while rc is None:
+        if rc is None:
+            rc = proc.poll()
+        for key, events in selector.select(timeout=1):
+            if key == key_stdout:
+                text = proc.stdout.read()
+                _ = [l.info(t) for t in list(filter(None, text.split('\n')))]
+            elif key == key_stderr:
+                text = proc.stderr.read()
+                _ = [l.error(t) for t in list(filter(None, text.split('\n')))]
+
+    exit_code = str(rc)
+    l.info(f'exit code: {exit_code}')
+    return exit_code
 
 def main():
     l = logging.getLogger('main')
@@ -96,49 +126,17 @@ def main():
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
         sys.exit(0)
+    global run_args
 
     if argz.get('test'):
-        l.debug(f"Run {test_run_args}")
-        try:
-            proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-        except Exception as e:
-            l.error(e)
-            z_sender.send(item=zabbix_item, value=1)
-            sys.exit(1)
+        run_args = test_run_args
     else:
-        global run_args
         if config['tsm'].get('tsm_backup_parms'):
             run_args = run_args + config['tsm'].get('tsm_backup_parms').split()
         if config['tsm'].get('backup_filename'):
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
-        l.debug(f"Run {run_args}")
-        try:
-            proc = subprocess.Popen(run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-        except Exception as e:
-            l.error(e)
-            z_sender.send(item=zabbix_item, value=1)
-            sys.exit(1)
 
-    selector = selectors.DefaultSelector()
-    key_stdout = selector.register(proc.stdout, selectors.EVENT_READ)
-    key_stderr = selector.register(proc.stderr, selectors.EVENT_READ)
-    setNonBlocking(proc.stdout)
-    setNonBlocking(proc.stderr)
-
-    rc = None
-    while rc is None:
-        if rc is None:
-            rc = proc.poll()
-        for key, events in selector.select(timeout=1):
-            if key == key_stdout:
-                text = proc.stdout.read()
-                _ = [l.info(t) for t in list(filter(None, text.split('\n')))]
-            elif key == key_stderr:
-                text = proc.stderr.read()
-                _ = [l.error(t) for t in list(filter(None, text.split('\n')))]
-
-    exit_code = str(rc)
-    l.info(f'exit code: {exit_code}')
+    exit_code = run_cmd(argz=run_args)
     z_sender.send(item=zabbix_item, value=exit_code)
 
 if __name__ == '__main__':
