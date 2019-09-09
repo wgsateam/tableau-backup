@@ -138,7 +138,7 @@ def main():
         if config['tsm'].get('backup_filename'):
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
 
-    l.debug(f"Run {argz}")
+    l.debug(f"Run {run_args}")
     exit_code = run_cmd(argz=run_args)
     l.info(f'exit code: {exit_code}')
     z_sender.send(item=zabbix_item, value=exit_code)
