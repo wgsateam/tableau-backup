@@ -100,11 +100,15 @@ def main():
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
             l.error(e)
+            z_sender.send(item=zabbix_item, value=1)
+            sys.exit(1)
     else:
         try:
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
             l.error(e)
+            z_sender.send(item=zabbix_item, value=1)
+            sys.exit(1)
 
     selector = selectors.DefaultSelector()
     key_stdout = selector.register(proc.stdout, selectors.EVENT_READ)
@@ -126,7 +130,7 @@ def main():
 
     exit_code = str(rc)
     l.info(f'exit code: {exit_code}')
-
+    z_sender.send(item=zabbix_item, value=exit_code)
 
 if __name__ == '__main__':
     main()
