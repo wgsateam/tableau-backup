@@ -1,0 +1,17 @@
+{
+  "tsm":{
+    "username":"****",
+    "password":"******",
+    "backup_filename": "dev_backup",
+    "tsm_backup_parms": "-d"
+  },
+  "logging":{
+    "file": "/var/opt/tableau/tableau_server/backup/run_backup.log",
+    "maxBytes": "2000000",
+    "backupCount": "5"
+  },
+  "zabbix": {
+    "config": "/etc/zabbix/zabbix_agentd.conf",
+    "item": "******"
+  }
+}
