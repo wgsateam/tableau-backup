@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 
 """
 tableau-backup.py -- Runs tsm maintenance backup and redirects output to file
@@ -70,7 +70,7 @@ def main():
         sh = logging.StreamHandler()
         sh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         l.addHandler(sh)
-        l.info("sys.stdout.isatty() is True")
+        l.debug("sys.stdout.isatty() is True")
 
     else:
         l.setLevel(logging.INFO)
@@ -80,11 +80,12 @@ def main():
         config_data = open(config_file)
     except Exception as e:
         l.error(f"Error while reading from {config_file}: {e}")
-
+        sys.exit(1)
     try:
         config = json.load(config_data)
     except Exception as e:
         l.error(f"Error while parsing {config_file}: {e}")
+        sys.exit(1)
     l.debug(f"{config_file} was loaded")
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['item']
