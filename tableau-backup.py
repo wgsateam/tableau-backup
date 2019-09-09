@@ -99,12 +99,12 @@ def main():
         try:
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
-            sys.exit(1)
+            l.error(e)
     else:
         try:
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
-            sys.exit(1)
+            l.error(e)
 
     selector = selectors.DefaultSelector()
     key_stdout = selector.register(proc.stdout, selectors.EVENT_READ)
