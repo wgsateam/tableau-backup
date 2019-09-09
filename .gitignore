@@ -2,3 +2,5 @@ config.json
 venv*/
 .idea
 .DS_Store
+*.log.*
+*.log

@@ -27,6 +27,7 @@ import fcntl
 import re
 import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
+from logging.handlers import RotatingFileHandler
 
 test_run_args = ['tsm', 'status', '-v']
 run_args = ['tsm', 'maintenance', 'backup']
@@ -87,6 +88,10 @@ def main():
         l.error(f"Error while parsing {config_file}: {e}")
         sys.exit(1)
     l.debug(f"{config_file} was loaded")
+    fh = RotatingFileHandler(config['logging']['file'], maxBytes=int(config['logging']['maxBytes']), backupCount=int(config['logging']['backupCount']))
+    fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    l.addHandler(fh)
+
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['item']
     l.debug(f"zabbix_item: {zabbix_item}")
