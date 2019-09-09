@@ -22,6 +22,7 @@ Options:
 import logging
 import sys
 import os
+import shutil
 import json
 from docopt import docopt
 import subprocess
@@ -35,6 +36,7 @@ run_args = ['tsm', 'maintenance', 'backup']
 run_args_test = ['tsm', 'status', '-v']
 run_args_reconnect = ['tsm', 'jobs', 'reconnect']
 config_file = 'config.json'
+backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups/'
 
 class ZSender(object):
     def __init__(self, config_file):
@@ -137,6 +139,8 @@ def main():
             run_args = run_args + config['tsm'].get('tsm_backup_parms').split()
         if config['tsm'].get('backup_filename'):
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
+        l.info(f"remove all files from {backup_folder}")
+        shutil.rmtree(backup_folder)
 
     l.debug(f"Run {run_args}")
     exit_code = run_cmd(argz=run_args)
