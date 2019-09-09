@@ -145,6 +145,7 @@ def main():
             file_path = os.path.join(backup_folder, file)
             try:
                 if os.path.isfile(file_path):
+                    l.info(f"Remove {file_path}")
                     os.remove(file_path)
             except Exception as e:
                 l.error(f"Error while cleaning {backup_folder}: {e}")
