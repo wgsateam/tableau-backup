@@ -141,6 +141,14 @@ def main():
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
         l.info(f"remove all files from {backup_folder}")
         shutil.rmtree(backup_folder)
+        for file in os.listdir(backup_folder):
+            file_path = os.path.join(backup_folder, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                l.error(f"Error while cleaning {backup_folder}: {e}")
+
 
     l.debug(f"Run {run_args}")
     exit_code = run_cmd(argz=run_args)
