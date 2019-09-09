@@ -95,6 +95,7 @@ def main():
         sys.exit(0)
 
     if argz.get('test'):
+        l.debug(f"Run {test_run_args}")
         try:
             proc = subprocess.Popen(test_run_args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         except Exception as e:
