@@ -140,7 +140,6 @@ def main():
         if config['tsm'].get('backup_filename'):
             run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
         l.info(f"remove all files from {backup_folder}")
-        shutil.rmtree(backup_folder)
         for file in os.listdir(backup_folder):
             file_path = os.path.join(backup_folder, file)
             try:
