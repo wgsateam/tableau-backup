@@ -139,9 +139,9 @@ def main():
         run_args = pre_args + run_args_test
     else:
         if config['tsm'].get('tsm_backup_parms'):
-            run_args = run_args_backup + config['tsm'].get('tsm_backup_parms') + ' '
+            run_args = run_args_backup + f" {config['tsm'].get('tsm_backup_parms')} "
         if config['tsm'].get('backup_filename'):
-            run_args = run_args + '-f ' + config['tsm'].get('backup_filename') + ' '
+            run_args = run_args + f" -f {config['tsm'].get('backup_filename')} "
         l.info(f"remove all files from {backup_folder}")
         for file in os.listdir(backup_folder):
             file_path = os.path.join(backup_folder, file)
