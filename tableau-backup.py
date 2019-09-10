@@ -32,9 +32,10 @@ import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 from logging.handlers import RotatingFileHandler
 
-run_args = ['tsm', 'maintenance', 'backup']
-run_args_test = ['tsm', 'status', '-v']
-run_args_reconnect = ['tsm', 'jobs', 'reconnect']
+run_args_backup = 'tsm maintenance backup'
+run_args_test = 'tsm status -v'
+run_args_reconnect = 'tsm jobs reconnect'
+pre_args = 'source /etc/profile.d/tableau_server.sh ; '
 config_file = 'config.json'
 script_home = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(script_home, config_file)
@@ -127,21 +128,20 @@ def main():
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['item']
     l.debug(f"zabbix_item: {zabbix_item}")
-    tttt = ['source', '/etc/profile.d/tableau_server.sh', '; ']
-    run_args_login = ['tsm', 'login', '-u', config['tsm'].get('username'), '-p', config['tsm'].get('password')]
-    exit_code = run_cmd(argz=tttt + run_args_login)
-    l.debug(f"Login exit code: {exit_code}")
+    run_args_login = pre_args + f"tsm login -u {config['tsm'].get('username')} -p {config['tsm'].get('password')}"
+    exit_code = run_cmd(argz=run_args_login)
+    l.info(f"Login exit code: {exit_code}")
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
     elif argz.get('re'):
-        run_args = run_args_reconnect
+        run_args = pre_args + run_args_reconnect
     elif argz.get('test'):
-        run_args = run_args_test
+        run_args = pre_args + run_args_test
     else:
         if config['tsm'].get('tsm_backup_parms'):
-            run_args = run_args + config['tsm'].get('tsm_backup_parms').split()
+            run_args = run_args_backup + config['tsm'].get('tsm_backup_parms') + ' '
         if config['tsm'].get('backup_filename'):
-            run_args = run_args + ['-f', config['tsm'].get('backup_filename')]
+            run_args = run_args + '-f ' + config['tsm'].get('backup_filename') + ' '
         l.info(f"remove all files from {backup_folder}")
         for file in os.listdir(backup_folder):
             file_path = os.path.join(backup_folder, file)
@@ -153,8 +153,8 @@ def main():
                 l.error(f"Error while cleaning {backup_folder}: {e}")
                 z_sender.send(item=zabbix_item, value=1)
 
-
-    l.debug(f"Run {run_args}")
+    run_args = pre_args + run_args
+    l.info(f"Run {run_args}")
     exit_code = run_cmd(argz=run_args)
     l.info(f'exit code: {exit_code}')
     z_sender.send(item=zabbix_item, value=exit_code)
