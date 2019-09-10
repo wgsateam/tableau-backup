@@ -36,6 +36,9 @@ run_args = ['tsm', 'maintenance', 'backup']
 run_args_test = ['tsm', 'status', '-v']
 run_args_reconnect = ['tsm', 'jobs', 'reconnect']
 config_file = 'config.json'
+script_home = os.path.dirname(os.path.realpath(__file__))
+config_path = os.path.join(script_home, config_file)
+
 backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups'
 
 class ZSender(object):
@@ -108,16 +111,16 @@ def main():
     argz = docopt(__doc__, argv=sys.argv[1:])
     l.debug(f"argz: {argz}")
     try:
-        config_data = open(config_file)
+        config_data = open(config_path)
     except Exception as e:
-        l.error(f"Error while reading from {config_file}: {e}")
+        l.error(f"Error while reading from {config_path}: {e}")
         sys.exit(1)
     try:
         config = json.load(config_data)
     except Exception as e:
-        l.error(f"Error while parsing {config_file}: {e}")
+        l.error(f"Error while parsing {config_path}: {e}")
         sys.exit(1)
-    l.debug(f"{config_file} was loaded")
+    l.debug(f"{config_path} was loaded")
     fh = RotatingFileHandler(config['logging']['file'], maxBytes=int(config['logging']['maxBytes']), backupCount=int(config['logging']['backupCount']))
     fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     l.addHandler(fh)
