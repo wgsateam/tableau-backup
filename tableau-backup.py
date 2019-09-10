@@ -127,9 +127,9 @@ def main():
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['item']
     l.debug(f"zabbix_item: {zabbix_item}")
-
+    tttt = ['source', '/etc/profile.d/tableau_server.sh', '; ']
     run_args_login = ['tsm', 'login', '-u', config['tsm'].get('username'), '-p', config['tsm'].get('password')]
-    exit_code = run_cmd(argz=run_args_login)
+    exit_code = run_cmd(argz=tttt + run_args_login)
     l.debug(f"Login exit code: {exit_code}")
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
