@@ -56,7 +56,7 @@ class ZSender(object):
 
     def send(self, item, value):
         packet = [ZabbixMetric(self.hostname, item, value)]
-        self.l.debug(f"Send {packet} to {self.server}")
+        self.l.info(f"Send {packet} to {self.server}")
         return ZabbixSender(zabbix_server=self.server).send(packet)
 
 def setNonBlocking(fileobj):
@@ -66,7 +66,7 @@ def setNonBlocking(fileobj):
 def run_cmd(argz):
     l = logging.getLogger('main.run_cmd')
     try:
-        proc = subprocess.Popen(argz, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        proc = subprocess.Popen(argz, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', shell=True)
     except Exception as e:
         l.error(e)
         return 1
