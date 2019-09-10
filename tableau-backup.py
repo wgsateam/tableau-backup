@@ -134,9 +134,9 @@ def main():
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
     elif argz.get('re'):
-        run_args = pre_args + run_args_reconnect
+        run_args = run_args_reconnect
     elif argz.get('test'):
-        run_args = pre_args + run_args_test
+        run_args = run_args_test
     else:
         if config['tsm'].get('tsm_backup_parms'):
             run_args = run_args_backup + f" {config['tsm'].get('tsm_backup_parms')} "
