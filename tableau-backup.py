@@ -154,7 +154,7 @@ def main():
                 z_sender.send(item=zabbix_item, value=1)
 
     run_args = pre_args + run_args
-    l.info(f"Run {run_args}")
+    l.info(f"Run \"{run_args}\"")
     exit_code = run_cmd(argz=run_args)
     l.info(f'exit code: {exit_code}')
     z_sender.send(item=zabbix_item, value=exit_code)
