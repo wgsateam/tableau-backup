@@ -133,6 +133,7 @@ def main():
     l.info(f"Login exit code: {exit_code}")
     if argz.get('zsend'):
         z_sender.send(item=zabbix_item, value=1)
+        sys.exit(0)
     elif argz.get('re'):
         run_args = run_args_reconnect
     elif argz.get('test'):
