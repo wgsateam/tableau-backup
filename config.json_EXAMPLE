@@ -12,6 +12,7 @@
   },
   "zabbix": {
     "config": "/etc/zabbix/zabbix_agentd.conf",
-    "item": "******"
+    "backup_item": "******"
+    "sitesexport_item" "******"
   }
 }

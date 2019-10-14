@@ -129,7 +129,7 @@ def main():
     fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     l.addHandler(fh)
     z_sender = ZSender(config_file=config['zabbix']['config'])
-    zabbix_item = config['zabbix']['item']
+    zabbix_item = config['zabbix']['backup_item']
     l.debug(f"zabbix_item: {zabbix_item}")
     run_args_login = pre_args + f"tsm login -u {config['tsm'].get('username')} -p {config['tsm'].get('password')}"
     exit_code = run_cmd(argz=run_args_login)
@@ -142,6 +142,7 @@ def main():
     elif argz.get('test'):
         run_args = run_args_test
     elif argz.get('site'):
+        zabbix_item = config['zabbix']['sitesexport_item']
         run_args = f"{run_args_site} -id {argz.get('<siteid>')} -f {argz.get('<siteid>')} -ow"
     else:
         if config['tsm'].get('tsm_backup_parms'):
