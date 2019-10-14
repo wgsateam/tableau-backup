@@ -8,6 +8,7 @@ Usage:
   tableau-backup.py zsend [-d]
   tableau-backup.py test [-d]
   tableau-backup.py re [-d]
+  tableau-backup.py site <siteid> [-d]
 
 Options:
   -d               Debug mode
@@ -15,6 +16,7 @@ Options:
   zsend            Send to zabbix '1'
   test             Run "tsm status -v"
   re               Run "tsm jobs reconnect"
+  site <siteid>    Run backup site. tsm sites export
 
 
 """
@@ -35,6 +37,7 @@ from logging.handlers import RotatingFileHandler
 run_args_backup = 'tsm maintenance backup'
 run_args_test = 'tsm status -v'
 run_args_reconnect = 'tsm jobs reconnect'
+run_args_site = 'tsm sites export '
 pre_args = 'source /etc/profile.d/tableau_server.sh ; '
 config_file = 'config.json'
 script_home = os.path.dirname(os.path.realpath(__file__))
@@ -138,6 +141,8 @@ def main():
         run_args = run_args_reconnect
     elif argz.get('test'):
         run_args = run_args_test
+    elif argz.get('site'):
+        run_args = f"{run_args_site} -id {argz.get('<siteid>')} -f {argz.get('<siteid>')} -ow"
     else:
         if config['tsm'].get('tsm_backup_parms'):
             run_args = run_args_backup + f" {config['tsm'].get('tsm_backup_parms')} "
