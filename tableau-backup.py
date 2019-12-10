@@ -34,16 +34,18 @@ import selectors
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 from logging.handlers import RotatingFileHandler
 
+backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups'
 run_args_backup = 'tsm maintenance backup'
 run_args_test = 'tsm status -v'
 run_args_reconnect = 'tsm jobs reconnect'
 run_args_site = 'tsm sites export '
+run_args_export_cong = f'tsm settings export -f {backup_folder}/settings.json'
 pre_args = 'source /etc/profile.d/tableau_server.sh ; '
 config_file = 'config.json'
 script_home = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(script_home, config_file)
 
-backup_folder = '/var/opt/tableau/tableau_server/data/tabsvc/files/backups'
+
 
 class ZSender(object):
     def __init__(self, config_file):
@@ -159,6 +161,11 @@ def main():
             except Exception as e:
                 l.error(f"Error while cleaning {backup_folder}: {e}")
                 z_sender.send(item=zabbix_item, value=1)
+
+
+    l.info(f"Run \"{run_args_export_cong}\"")
+    exit_code = run_cmd(argz=run_args_export_cong)
+    l.info(f'exit code: {exit_code}')
 
     run_args = pre_args + run_args
     l.info(f"Run \"{run_args}\"")
