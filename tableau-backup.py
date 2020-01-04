@@ -8,7 +8,6 @@ Usage:
   tableau-backup.py zsend [-d]
   tableau-backup.py test [-d]
   tableau-backup.py re [-d]
-  tableau-backup.py site <siteid> [-d]
 
 Options:
   -d               Debug mode
@@ -16,8 +15,6 @@ Options:
   zsend            Send to zabbix '1'
   test             Run "tsm status -v"
   re               Run "tsm jobs reconnect"
-  site <siteid>    Run backup site. tsm sites export
-
 
 """
 
@@ -40,7 +37,7 @@ run_args_test = 'tsm status -v'
 run_args_reconnect = 'tsm jobs reconnect'
 run_args_site = 'tsm sites export '
 run_args_export_cong = f'tsm settings export -f {backup_folder}/settings.json'
-pre_args = 'source /etc/profile.d/tableau_server.sh ; '
+pre_args = 'source /etc/profile.d/tableau_server.sh'
 config_file = 'config.json'
 script_home = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(script_home, config_file)
@@ -133,7 +130,7 @@ def main():
     z_sender = ZSender(config_file=config['zabbix']['config'])
     zabbix_item = config['zabbix']['backup_item']
     l.debug(f"zabbix_item: {zabbix_item}")
-    run_args_login = pre_args + f"tsm login -u {config['tsm'].get('username')} -p {config['tsm'].get('password')}"
+    run_args_login = pre_args + '; ' + f"tsm login -u {config['tsm'].get('username')} -p {config['tsm'].get('password')}"
     exit_code = run_cmd(argz=run_args_login)
     l.info(f"Login exit code: {exit_code}")
     if argz.get('zsend'):
@@ -162,12 +159,7 @@ def main():
                 l.error(f"Error while cleaning {backup_folder}: {e}")
                 z_sender.send(item=zabbix_item, value=1)
 
-
-    l.info(f"Run \"{run_args_export_cong}\"")
-    exit_code = run_cmd(argz=run_args_export_cong)
-    l.info(f'exit code: {exit_code}')
-
-    run_args = pre_args + run_args
+    run_args = pre_args + '; ' + run_args_export_cong + '; ' + run_args
     l.info(f"Run \"{run_args}\"")
     exit_code = run_cmd(argz=run_args)
     l.info(f'exit code: {exit_code}')
