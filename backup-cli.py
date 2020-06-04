@@ -88,7 +88,7 @@ def cli(ctx, config_path, debug):
 @click.option('--date', help='Appends the current date to the backup file name.', is_flag=True, default=True, show_default=True)
 @click.option('--wait', help='Wait for end job.', is_flag=True, default=False, show_default=True)
 @click.option('--skip_verification', help='Do not verify integrity of the database backup.', is_flag=True, default=False, show_default=True)
-@click.option('--timeout', help='Seconds to wait for command to finish', type=int, default='1800', show_default=True)
+@click.option('--timeout', help='Seconds to wait for command to finish', type=int, default=86400, show_default=True)
 @click.pass_obj
 def start(tbcli, file, date, wait, skip_verification, timeout):
     '''Start a backup'''
