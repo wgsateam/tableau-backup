@@ -1,18 +1,24 @@
 {
-  "tsm":{
-    "username":"****",
-    "password":"******",
-    "backup_filename": "dev_backup",
-    "tsm_backup_parms": "-d"
-  },
-  "logging":{
-    "file": "/var/opt/tableau/tableau_server/backup/run_backup.log",
-    "maxBytes": "2000000",
-    "backupCount": "5"
-  },
-  "zabbix": {
-    "config": "/etc/zabbix/zabbix_agentd.conf",
-    "backup_item": "******"
-    "sitesexport_item" "******"
-  }
+    "tsm": {
+        "username": "tadmin",
+        "password": "***",
+        "url": "https://"
+    },
+    "backup": {
+        "backup_prefix": "dev_backup",
+        "backuptime": "7 19 * * *"
+    },
+    "logging":{
+        "file": "/tmp/run_backup.log",
+        "maxBytes": "2000000",
+        "backupCount": "5"
+    },
+    "zabbix": {
+        "config": "/etc/zabbix/zabbix_agentd.conf",
+        "backup_item": "tbackup",
+        "sitesexport_item": "sitesexp"
+    },
+    "sentry": {
+        "url": "https://"
+    }
 }

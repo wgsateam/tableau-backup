@@ -4,3 +4,6 @@ venv*/
 .DS_Store
 *.log.*
 *.log
+*__pycache__*
+sundbox*
+tmp*
