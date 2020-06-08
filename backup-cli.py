@@ -55,9 +55,21 @@ class TableauBackupCLI:
                     click.echo('{}: {}'.format(resp['status'], resp['statusMessage']))
                 return resp['status']
             time.sleep(poll_interval)
+    def _clean_backup_dir(self):
+        backup_dir = self.config['backup']['backup_dir']
+        for file in os.listdir(backup_dir):
+            file_path = os.path.join(backup_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    self._logger.info(f"Remove {file_path}")
+                    os.remove(file_path)
+            except Exception as e:
+                self._logger.error(f"Error while cleaning {backup_dir}: {e}")
 
-    def start(self, file, add_date, wait, skip_verification, timeout):
+    def start(self, file, add_date, wait, skip_verification, timeout, clean_backup_dir):
         self._login_in_tsm()
+        if clean_backup_dir:
+            self._clean_backup_dir()
         self._logger.debug('Start backup: file:{}, add_date:{}, skip_verification:{}, timeout:{}'.format(file, add_date, skip_verification, timeout))
         job_id = self.tsm.start_backup(file, add_date, skip_verification, timeout)
         click.echo('job id: {}'.format(job_id))
@@ -89,10 +101,11 @@ def cli(ctx, config_path, debug):
 @click.option('--wait', help='Wait for end job.', is_flag=True, default=False, show_default=True)
 @click.option('--skip_verification', help='Do not verify integrity of the database backup.', is_flag=True, default=False, show_default=True)
 @click.option('--timeout', help='Seconds to wait for command to finish', type=int, default=86400, show_default=True)
+@click.option('--clean_backup_dir', help='Remove all files in backup dir', is_flag=True, default=False, show_default=True)
 @click.pass_obj
-def start(tbcli, file, date, wait, skip_verification, timeout):
+def start(tbcli, file, date, wait, skip_verification, timeout, clean_backup_dir):
     '''Start a backup'''
-    tbcli.start(file, date,wait, skip_verification, timeout)
+    tbcli.start(file, date,wait, skip_verification, timeout, clean_backup_dir)
 
 @cli.command()
 @click.pass_obj

@@ -6,7 +6,8 @@
     },
     "backup": {
         "backup_prefix": "dev_backup",
-        "backuptime": "7 19 * * *"
+        "backuptime": "7 19 * * *",
+        "backup_dir": "/var/opt/tableau/tableau_server/data/tabsvc/files/backups/"
     },
     "logging":{
         "file": "/tmp/run_backup.log",
