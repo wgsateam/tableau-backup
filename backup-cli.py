@@ -5,8 +5,10 @@ import logging
 import os
 import time
 import json
+import re
 from sys import stdout
 from TSMApi import TSMApi
+from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
 
 config_file = 'config.json'
 script_home = os.path.dirname(os.path.realpath(__file__))
@@ -66,8 +68,27 @@ class TableauBackupCLI:
             except Exception as e:
                 self._logger.error(f"Error while cleaning {backup_dir}: {e}")
 
-    def start(self, file, add_date, wait, skip_verification, timeout, clean_backup_dir):
+    def _send_to_zabbix(self, value):
+        zab_conf = self.config.get('zabbix')
+        if not zab_conf:
+            click.echo('There is no zabbix section in the config file')
+        try:
+            zabbix_file = open(zab_conf.get('config')).read()
+        except Exception as e:
+            self.l.error(f"Error reading from file{zab_conf.get('config')}: {e}")
+            raise e
+        zab_server = re.search(r'ServerActive=(.+)', zabbix_file).group(1)
+        zab_hostname = re.search(r'Hostname=(.+)', zabbix_file).group(1)
+        packet = [ZabbixMetric(zab_hostname, zab_conf.get('backup_item'), value)]
+        return ZabbixSender(zabbix_server=zab_server).send(packet)
+
+    def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir):
         self._login_in_tsm()
+        if zab_test:
+            click.echo('Sending to Zabbix 1')
+            self._send_to_zabbix(1)
+            return 0
+
         if clean_backup_dir:
             self._clean_backup_dir()
         self._logger.debug('Start backup: file:{}, add_date:{}, skip_verification:{}, timeout:{}'.format(file, add_date, skip_verification, timeout))
@@ -77,6 +98,11 @@ class TableauBackupCLI:
             job_status = self._poll_job(job_id)
             if job_status == 'Failed':
                 quit(1)
+        if zabbix:
+            job_status = self._poll_job(job_id)
+            if job_status == 'Failed':
+                pass
+
 
     def list_jobs(self):
         click.echo('coming soon...')
@@ -89,7 +115,7 @@ class TableauBackupCLI:
 
 @click.group()
 @click.option('--config_path', default=config_path)
-@click.option('--debug/--no-debug', default=False)
+@click.option('-d', '--debug', default=False, is_flag=True)
 @click.pass_context
 def cli(ctx, config_path, debug):
     ctx.obj = TableauBackupCLI(config_path, debug)
@@ -99,13 +125,15 @@ def cli(ctx, config_path, debug):
 @click.option('--file', help='Name of backup file.', default='backup', show_default=True)
 @click.option('--date', help='Appends the current date to the backup file name.', is_flag=True, default=True, show_default=True)
 @click.option('--wait', help='Wait for end job.', is_flag=True, default=False, show_default=True)
+@click.option('--zabbix', help='Wait and send job result to Zabbix.', is_flag=True, default=True, show_default=True)
+@click.option('--zab_test', help='Send to Zabbix 1 without run job.', is_flag=True, default=False, show_default=True)
 @click.option('--skip_verification', help='Do not verify integrity of the database backup.', is_flag=True, default=False, show_default=True)
 @click.option('--timeout', help='Seconds to wait for command to finish', type=int, default=86400, show_default=True)
 @click.option('--clean_backup_dir', help='Remove all files in backup dir', is_flag=True, default=False, show_default=True)
 @click.pass_obj
-def start(tbcli, file, date, wait, skip_verification, timeout, clean_backup_dir):
+def start(tbcli, file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir):
     '''Start a backup'''
-    tbcli.start(file, date,wait, skip_verification, timeout, clean_backup_dir)
+    tbcli.start(file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir)
 
 @cli.command()
 @click.pass_obj
