@@ -103,7 +103,9 @@ class TableauBackupCLI:
         if zabbix:
             job_status = self._poll_job(job_id)
             if job_status == 'Failed':
-                pass
+                self._send_to_zabbix(1)
+            else:
+                self._send_to_zabbix(0)
 
 
     def list_jobs(self):
