@@ -80,7 +80,7 @@ class TableauBackupCLI:
         zab_server = re.search(r'ServerActive=(.+)', zabbix_file).group(1)
         zab_hostname = re.search(r'Hostname=(.+)', zabbix_file).group(1)
         packet = [ZabbixMetric(zab_hostname, zab_conf.get('backup_item'), value)]
-        self._logger.debug(f'Send to {zab_server} {packet}')
+        self._logger.debug(f'Send to {zab_server} packet:{packet}')
         return ZabbixSender(zabbix_server=zab_server).send(packet)
 
     def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir):
