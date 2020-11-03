@@ -86,7 +86,8 @@ class TableauBackupCLI:
         self._login_in_tsm()
         if zab_test:
             click.echo('Sending to Zabbix 1')
-            self._send_to_zabbix(1)
+            zab_ans = self._send_to_zabbix(1)
+            self._logger.debug(f'zab_ans: {zab_ans}')
             return 0
 
         if clean_backup_dir:
