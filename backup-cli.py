@@ -83,7 +83,7 @@ class TableauBackupCLI:
         self._logger.debug(f'Send to {zab_server} packet:{packet}')
         return ZabbixSender(zabbix_server=zab_server).send(packet)
 
-    def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir):
+    def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, override_disk_space_check, clean_backup_dir):
         self._login_in_tsm()
         if zab_test:
             click.echo('Sending to Zabbix 1')
@@ -93,8 +93,8 @@ class TableauBackupCLI:
 
         if clean_backup_dir:
             self._clean_backup_dir()
-        self._logger.debug('Start backup: file:{}, add_date:{}, skip_verification:{}, timeout:{}'.format(file, add_date, skip_verification, timeout))
-        job_id = self.tsm.start_backup(file, add_date, skip_verification, timeout)
+        self._logger.debug('Start backup: file:{}, add_date:{}, skip_verification:{}, timeout:{}, override_disk_space_check:{}'.format(file, add_date, skip_verification, timeout, override_disk_space_check))
+        job_id = self.tsm.start_backup(file, add_date, skip_verification, timeout, override_disk_space_check)
         click.echo('job id: {}'.format(job_id))
         if wait:
             job_status = self._poll_job(job_id)
@@ -133,11 +133,12 @@ def cli(ctx, config_path, debug):
 @click.option('--zab_test', help='Send to Zabbix 1 without run job.', is_flag=True, default=False, show_default=True)
 @click.option('--skip_verification', help='Do not verify integrity of the database backup.', is_flag=True, default=False, show_default=True)
 @click.option('--timeout', help='Seconds to wait for command to finish', type=int, default=86400, show_default=True)
+@click.option('--override_disk_space_check', help='Attempt to generate backup, despite low disk space warning.', is_flag=True, default=False, show_default=True)
 @click.option('--clean_backup_dir', help='Remove all files in backup dir', is_flag=True, default=False, show_default=True)
 @click.pass_obj
-def start(tbcli, file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir):
+def start(tbcli, file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir, override_disk_space_check):
     '''Start a backup'''
-    tbcli.start(file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir)
+    tbcli.start(file, date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir, override_disk_space_check)
 
 @cli.command()
 @click.pass_obj

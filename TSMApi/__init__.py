@@ -47,15 +47,15 @@ class TSMApi:
         auth = {'authentication': {'name': username, 'password': password}}
         self._requests_wraper(url, self.METHOD_POST, json_data=auth)
 
-    def start_backup(self, file, add_date=True, skip_verification=False, timeout=1800):
+    def start_backup(self, file, add_date=True, skip_verification=False, timeout=1800, override_disk_space_check=False):
         if add_date:
             timestamp = time.time()
             date_string = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H:%M:%S')
             backup_name = '{0}_{1}'.format(file, date_string)
         else:
             backup_name = file
-        self.logger.debug('Start backup file:{}, skip-verification:{}, timeout:{}'.format(backup_name, skip_verification, timeout))
-        backup_params = ['jobTimeoutSeconds={0}'.format(timeout), 'writePath={0}'.format(backup_name), 'skipVerification={0}'.format(skip_verification)]
+        self.logger.debug('Start backup file:{}, skip-verification:{}, timeout:{}, override-disk-space-check: {}'.format(backup_name, skip_verification, timeout, override_disk_space_check))
+        backup_params = ['jobTimeoutSeconds={0}'.format(timeout), 'writePath={0}'.format(backup_name), 'overrideDiskSpaceCheck={0}'.format(override_disk_space_check), 'skipVerification={0}'.format(skip_verification)]
         url = self._build_url(endpoint='backupFixedFile', params=backup_params)
         resp = self._requests_wraper(url, self.METHOD_POST)
         job_id = resp.get('asyncJob').get('id')
