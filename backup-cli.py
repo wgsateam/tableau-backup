@@ -6,6 +6,7 @@ import os
 import time
 import json
 import re
+import hashlib
 from sys import stdout
 from TSMApi import TSMApi
 from pyzabbix import ZabbixMetric, ZabbixSender # pip install py-zabbix
@@ -83,6 +84,19 @@ class TableauBackupCLI:
         self._logger.debug(f'Send to {zab_server} packet:{packet}')
         return ZabbixSender(zabbix_server=zab_server).send(packet)
 
+    def calculate_sha256(file_path):
+        file_path = "/var/opt/tableau/tableau_server/data/tabsvc/files/backups/" + file_path
+        sha256_hash = hashlib.sha256()
+        with open(file_path, 'rb') as file:
+            for chunk in iter(lambda: file.read(4096), b''):
+                sha256_hash.update(chunk)
+        return sha256_hash.hexdigest()
+
+    def write_sha256sum_to_file(file_path, sha256sum):
+        file_path = "/var/opt/tableau/tableau_server/data/tabsvc/files/backups/" + file_path
+        with open(file_path, 'w') as file:
+            file.write(sha256sum)       
+
     def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, override_disk_space_check, clean_backup_dir):
         self._login_in_tsm()
         if zab_test:
@@ -94,12 +108,14 @@ class TableauBackupCLI:
         if clean_backup_dir:
             self._clean_backup_dir()
         self._logger.debug('Start backup: file:{}, add_date:{}, skip_verification:{}, timeout:{}, override_disk_space_check:{}'.format(file, add_date, skip_verification, timeout, override_disk_space_check))
-        job_id = self.tsm.start_backup(file, add_date, skip_verification, timeout, override_disk_space_check)
+        job_id, backup_name = self.tsm.start_backup(file, add_date, skip_verification, timeout, override_disk_space_check)
         click.echo('job id: {}'.format(job_id))
         if wait:
             job_status = self._poll_job(job_id)
             if job_status == 'Failed':
                 quit(1)
+            sha256sum = self.calculate_sha256(backup_name)
+            self.write_sha256sum_to_file(backup_name+".sha256", sha256sum)
         if zabbix:
             job_status = self._poll_job(job_id)
             if job_status == 'Failed':

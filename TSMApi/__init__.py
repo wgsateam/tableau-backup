@@ -50,7 +50,7 @@ class TSMApi:
     def start_backup(self, file, add_date=True, skip_verification=False, timeout=1800, override_disk_space_check=False):
         if add_date:
             timestamp = time.time()
-            date_string = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H:%M:%S')
+            date_string = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M')
             backup_name = '{0}_{1}'.format(file, date_string)
         else:
             backup_name = file
@@ -59,7 +59,7 @@ class TSMApi:
         url = self._build_url(endpoint='backupFixedFile', params=backup_params)
         resp = self._requests_wraper(url, self.METHOD_POST)
         job_id = resp.get('asyncJob').get('id')
-        return job_id
+        return job_id, backup_name
 
     def get_jobs(self):
         url = self._build_url(endpoint='asyncJobs')
