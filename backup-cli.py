@@ -97,7 +97,7 @@ class TableauBackupCLI:
         with open(file_path, 'w') as file:
             file.write(sha256sum)       
 
-    def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, override_disk_space_check, clean_backup_dir):
+    def start(self, file, add_date, wait, zabbix, zab_test, skip_verification, timeout, clean_backup_dir, override_disk_space_check):
         self._login_in_tsm()
         if zab_test:
             click.echo('Sending to Zabbix 1')
